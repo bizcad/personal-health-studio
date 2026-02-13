@@ -1,0 +1,47 @@
+# LICENSE
+
+Personal Health Studio
+
+Based on: [georgevetticaden/multi-agent-health-insight-system](https://github.com/georgevetticaden/multi-agent-health-insight-system) (MIT License)
+
+This project and all original contributions are provided as-is for personal use and educational purposes.
+
+## MIT License
+
+Copyright (c) 2026
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Health Data Notice
+
+**This software processes personal health information. Users are responsible for:**
+
+1. Securing their Snowflake credentials
+2. Protecting exported health data from unauthorized access
+3. Complying with local privacy regulations (HIPAA, GDPR, etc.)
+4. Handling data deletion and retention appropriately
+5. Reviewing and validating extracted data
+
+The authors are not responsible for:
+- Data breaches or unauthorized access
+- Inaccurate health data extraction
+- Medical decisions made based on system output
+- Regulatory compliance in your jurisdiction
+
+**Always consult with healthcare providers about health concerns. This system is a personal data management tool, not medical advice.**

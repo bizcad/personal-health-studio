@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "header_fields": {
+      "properties": {
+        "Patient_Name": {
+          "$comment": "Patient's full name as it appears across documents.",
+          "description": "Full name of the patient.",
+          "examples": ["JOHN DOE"],
+          "type": "string"
+        },
+        "Date_Of_Birth": {
+          "$comment": "Date of birth is crucial for patient identification.",
+          "description": "Patient's date of birth.",
+          "examples": ["1980-03-26"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Report_Date": {
+          "$comment": "The date the health record was generated.",
+          "description": "Date the health report was generated.",
+          "examples": ["2025-05-16"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Patient_Age": {
+          "$comment": "Age calculated from date of birth to report date.",
+          "description": "Patient's age at the time of the report.",
+          "examples": [45],
+          "type": "integer"
+        }
+      },
+      "required": ["Patient_Name", "Date_Of_Birth", "Report_Date", "Patient_Age"],
+      "type": "object"
+    },
+    "Medications": {
+      "description": "Medication prescriptions and history.",
+      "items": {
+        "properties": {
+          "Prescription_Date": {
+            "$comment": "Prescription dates enable medication timeline analysis.",
+            "description": "Date when the medication was prescribed.",
+            "examples": ["2025-04-09"],
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "Provider": {
+            "$comment": "Provider identification helps track prescribing patterns.",
+            "description": "Healthcare provider who prescribed the medication.",
+            "examples": ["Care Provider"],
+            "type": "string"
+          },
+          "Medication_Name": {
+            "$comment": "Base medication name without dosage or form.",
+            "description": "Name of the medication without dosage or form details.",
+            "examples": ["rosuvastatin", "Bystolic", "nebivolol"],
+            "type": "string"
+          },
+          "Dosage": {
+            "$comment": "Dosage information is crucial for medication analysis.",
+            "description": "Dosage of the medication.",
+            "examples": ["5 MG", "145 MG", "60 MG"],
+            "type": "string"
+          },
+          "Form": {
+            "$comment": "Form describes the medication delivery method.",
+            "description": "Form or preparation of the medication.",
+            "examples": ["Tabs", "Tablet", "Capsule"],
+            "type": "string"
+          },
+          "Frequency": {
+            "$comment": "Frequency helps establish medication regimen.",
+            "description": "How often the medication is taken.",
+            "examples": ["Once daily", "Twice daily", "As needed"],
+            "type": "string"
+          },
+          "For_Condition": {
+            "$comment": "Condition links medication to its therapeutic purpose.",
+            "description": "Condition the medication is treating.",
+            "examples": ["Hypertension", "Diabetes", "Anxiety"],
+            "type": "string"
+          }
+        },
+        "required": ["Prescription_Date", "Provider", "Medication_Name"],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  }
+}

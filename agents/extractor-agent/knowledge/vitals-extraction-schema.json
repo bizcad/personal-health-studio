@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "header_fields": {
+      "properties": {
+        "Patient_Name": {
+          "$comment": "Patient's full name as it appears across documents.",
+          "description": "Full name of the patient.",
+          "examples": ["JOHN DOE"],
+          "type": "string"
+        },
+        "Date_Of_Birth": {
+          "$comment": "Date of birth is crucial for patient identification.",
+          "description": "Patient's date of birth.",
+          "examples": ["1980-03-26"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Report_Date": {
+          "$comment": "The date the health record was generated.",
+          "description": "Date the health report was generated.",
+          "examples": ["2025-05-16"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Patient_Age": {
+          "$comment": "Age calculated from date of birth to report date.",
+          "description": "Patient's age at the time of the report.",
+          "examples": [45],
+          "type": "integer"
+        }
+      },
+      "required": ["Patient_Name", "Date_Of_Birth", "Report_Date", "Patient_Age"],
+      "type": "object"
+    },
+    "Vitals": {
+      "description": "Vital sign measurements in US customary units.",
+      "items": {
+        "properties": {
+          "Measurement_Date": {
+            "$comment": "Measurement dates enable longitudinal analysis.",
+            "description": "Date when vital signs were measured.",
+            "examples": ["2025-04-09"],
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "Provider": {
+            "$comment": "Provider information helps track measurement sources.",
+            "description": "Healthcare provider who took the measurements.",
+            "examples": ["Health Clinic"],
+            "type": "string"
+          },
+          "Vital_Type": {
+            "$comment": "Vital type must be standardized for analysis.",
+            "description": "Type of vital sign measurement.",
+            "examples": ["Blood Pressure", "Weight", "Height", "BMI", "Pulse", "Temperature"],
+            "type": "string"
+          },
+          "Vital_Value": {
+            "$comment": "Values must be extracted exactly as shown and converted to US units where applicable.",
+            "description": "Measured value of the vital sign, converted to US units if necessary.",
+            "examples": [124, 80, 185.5, 98.6],
+            "type": "number"
+          },
+          "Vital_Unit": {
+            "$comment": "Units must use US customary system.",
+            "description": "Unit of measurement for the vital sign in US customary units.",
+            "examples": ["mmHg", "lb", "in", "/min", "°F"],
+            "type": "string"
+          }
+        },
+        "required": ["Measurement_Date", "Provider", "Vital_Type", "Vital_Value"],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  }
+}

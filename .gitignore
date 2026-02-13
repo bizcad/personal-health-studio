@@ -1,0 +1,105 @@
+# .gitignore - Personal Health Studio
+
+# Environment variables (never commit credentials)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p8
+credentials.json
+secrets.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv
+virtualenv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project-specific
+# Sample health data (if large)
+*.pdf
+sample_data/
+test_data/
+# Except for schema/example files
+!docs/examples/*.pdf
+
+# Snowflake configuration (local override)
+.snowflake_config.local
+
+# MCP server runtime
+tools/health-mcp/.uv/
+tools/health-mcp/uv.lock
+
+# Temporary files
+*.tmp
+*.temp
+.scratch/
+working/
+
+# OS-specific
+.AppleDouble
+.LSOverride
+._*
+
+# Lock files (for reproducibility, these should be tracked)
+# Uncomment if you want to commit lock files
+# !uv.lock
+# !poetry.lock
+# !package-lock.json
+
+# Logs
+*.log
+logs/
+
+# Database files (if using local SQLite)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Sensitive data (never commit real health data)
+*patient*data*
+*real_*
+*actual_*

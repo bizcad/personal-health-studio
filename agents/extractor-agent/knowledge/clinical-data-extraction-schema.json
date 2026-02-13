@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "header_fields": {
+      "properties": {
+        "Patient_Name": {
+          "$comment": "Patient's full name as it appears across documents.",
+          "description": "Full name of the patient.",
+          "examples": ["JOHN DOE"],
+          "type": "string"
+        },
+        "Date_Of_Birth": {
+          "$comment": "Date of birth is crucial for patient identification.",
+          "description": "Patient's date of birth.",
+          "examples": ["1980-03-26"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Report_Date": {
+          "$comment": "The date the health record was generated.",
+          "description": "Date the health report was generated.",
+          "examples": ["2025-05-16"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Patient_Age": {
+          "$comment": "Age calculated from date of birth to report date.",
+          "description": "Patient's age at the time of the report.",
+          "examples": [45],
+          "type": "integer"
+        }
+      },
+      "required": ["Patient_Name", "Date_Of_Birth", "Report_Date", "Patient_Age"],
+      "type": "object"
+    },
+    "Allergies": {
+      "description": "Patient allergy information.",
+      "items": {
+        "properties": {
+          "Allergy": {
+            "$comment": "Allergy information is crucial for medication safety.",
+            "description": "Description of the allergy.",
+            "examples": ["No Known Allergies", "Penicillin"],
+            "type": "string"
+          },
+          "Record_Date": {
+            "$comment": "Record date helps track when allergies were documented.",
+            "description": "Date when the allergy was recorded.",
+            "examples": ["2025-04-09"],
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "Provider": {
+            "$comment": "Provider who documented the allergy.",
+            "description": "Healthcare provider who recorded the allergy.",
+            "examples": ["Care Provider"],
+            "type": "string"
+          }
+        },
+        "required": ["Allergy", "Record_Date", "Provider"],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "Conditions": {
+      "description": "Medical conditions and diagnoses.",
+      "items": {
+        "properties": {
+          "Diagnosis_Date": {
+            "$comment": "Diagnosis dates enable chronological analysis.",
+            "description": "Date when the condition was diagnosed.",
+            "examples": ["2023-09-28"],
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "Provider": {
+            "$comment": "Provider information helps track diagnosis sources.",
+            "description": "Healthcare provider who made the diagnosis.",
+            "examples": ["Care Provider"],
+            "type": "string"
+          },
+          "Condition_Name": {
+            "$comment": "Condition names must be standardized for analysis.",
+            "description": "Name or description of the medical condition.",
+            "examples": ["Hypertension", "Type 2 Diabetes", "Anxiety"],
+            "type": "string"
+          },
+          "Status": {
+            "$comment": "Status indicates if condition is active or resolved.",
+            "description": "Current status of the condition.",
+            "examples": ["Active", "Resolved", "Chronic"],
+            "type": "string"
+          }
+        },
+        "required": ["Diagnosis_Date", "Provider", "Condition_Name"],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  }
+}

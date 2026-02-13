@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "header_fields": {
+      "properties": {
+        "Patient_Name": {
+          "$comment": "Patient's full name as it appears across documents.",
+          "description": "Full name of the patient.",
+          "examples": ["JOHN DOE"],
+          "type": "string"
+        },
+        "Date_Of_Birth": {
+          "$comment": "Date of birth is crucial for patient identification.",
+          "description": "Patient's date of birth.",
+          "examples": ["1980-03-26"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Report_Date": {
+          "$comment": "The date the health record was generated.",
+          "description": "Date the health report was generated.",
+          "examples": ["2025-05-16"],
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "type": "string"
+        },
+        "Patient_Age": {
+          "$comment": "Age calculated from date of birth to report date.",
+          "description": "Patient's age at the time of the report.",
+          "examples": [45],
+          "type": "integer"
+        }
+      },
+      "required": ["Patient_Name", "Date_Of_Birth", "Report_Date", "Patient_Age"],
+      "type": "object"
+    },
+    "Lab_Results": {
+      "description": "Laboratory test results grouped by date and provider",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Test_Date": {
+            "description": "Date when the lab tests were performed",
+            "examples": ["2025-04-07"],
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "Provider": {
+            "description": "Healthcare provider who ordered or performed the tests",
+            "examples": ["Health Clinic"],
+            "type": "string"
+          },
+          "Tests": {
+            "description": "Collection of test results for this date and provider",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Test_Name": {
+                  "description": "Name of the laboratory test",
+                  "examples": ["Glucose", "HbA1c", "Cholesterol", "ALT", "Creatinine"],
+                  "type": "string"
+                },
+                "Test_Value": {
+                  "description": "Result value of the test",
+                  "examples": ["98", "6.1", "149"],
+                  "type": "string"
+                },
+                "Test_Unit": {
+                  "description": "Unit of measurement for the test result",
+                  "examples": ["mg/dL", "%", "IU/L"],
+                  "type": "string"
+                },
+                "Reference_Range": {
+                  "description": "Normal reference range for the test",
+                  "examples": ["74 to 109", "4 to 5.6"],
+                  "type": "string"
+                },
+                "Flag": {
+                  "description": "Flag indicating abnormal results (e.g., OUT OF RANGE)",
+                  "examples": ["OUT OF RANGE"],
+                  "type": "string"
+                },
+                "Test_Category": {
+                  "description": "Category or panel the test belongs to",
+                  "examples": ["Metabolic", "Lipid", "Liver", "Kidney"],
+                  "type": "string"
+                }
+              },
+              "required": ["Test_Name", "Test_Value"]
+            }
+          }
+        },
+        "required": ["Test_Date", "Provider", "Tests"]
+      }
+    }
+  }
+}
