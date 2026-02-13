@@ -218,13 +218,21 @@ class NLMapper:
         
         # Build SELECT clause
         if intent.metric == "count":
-            select_clause = f"SELECT COUNT(*) as result_count"
+            select_clause = "SELECT COUNT(*) as result_count"
         elif intent.metric == "average":
-            select_clause = "SELECT AVG(CAST(SPLIT_PART(data_json, ':', 2) AS FLOAT)) as result_average"
+            # Extract numeric values from JSON result_value field
+            # Handle values like "98 mg/dL" by splitting on space and taking first part
+            select_clause = """SELECT 
+                AVG(TRY_CAST(SPLIT_PART(TRY_PARSE_JSON(data_json):result_value::STRING, ' ', 1) AS FLOAT)) as result_average,
+                COUNT(*) as record_count"""
         elif intent.metric == "maximum":
-            select_clause = "SELECT MAX(CAST(SPLIT_PART(data_json, ':', 2) AS FLOAT)) as result_maximum"
+            select_clause = """SELECT 
+                MAX(TRY_CAST(SPLIT_PART(TRY_PARSE_JSON(data_json):result_value::STRING, ' ', 1) AS FLOAT)) as result_maximum,
+                COUNT(*) as record_count"""
         elif intent.metric == "minimum":
-            select_clause = "SELECT MIN(CAST(SPLIT_PART(data_json, ':', 2) AS FLOAT)) as result_minimum"
+            select_clause = """SELECT 
+                MIN(TRY_CAST(SPLIT_PART(TRY_PARSE_JSON(data_json):result_value::STRING, ' ', 1) AS FLOAT)) as result_minimum,
+                COUNT(*) as record_count"""
         else:  # list/show
             select_clause = "SELECT record_date, data_json, provider_identity, extraction_confidence"
         
@@ -238,16 +246,16 @@ class NLMapper:
         if intent.record_type:
             where_conditions.append(f"record_class = '{intent.record_type.value}'")
         
-        # Add attribute filter (for lab tests, etc.)
+        # Add attribute filter (for lab tests, etc.) - use ILIKE for case-insensitive matching
         if intent.attribute:
-            where_conditions.append(f"data_json LIKE '%{intent.attribute}%'")
+            where_conditions.append(f"data_json ILIKE '%{intent.attribute}%'")
         
-        # Add filter condition
+        # Add filter condition - use ILIKE for case-insensitive matching
         if intent.filter_condition:
             if intent.filter_condition == "abnormal":
-                where_conditions.append(f"data_json LIKE '%abnormal%'")
+                where_conditions.append(f"data_json ILIKE '%abnormal%'")
             elif intent.filter_condition == "active":
-                where_conditions.append(f"(data_json LIKE '%active%' OR data_json LIKE '%ongoing%')")
+                where_conditions.append(f"(data_json ILIKE '%active%' OR data_json ILIKE '%ongoing%')")
             elif intent.filter_condition == "recent":
                 where_conditions.append(f"record_date >= DATEADD(day, -30, CURRENT_DATE())")
         

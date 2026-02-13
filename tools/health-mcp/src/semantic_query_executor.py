@@ -86,6 +86,10 @@ class SemanticQueryExecutor:
         # Execute query
         try:
             results = self.client.execute_query(sql)
+            # Debug: Log the SQL and result count
+            if __name__ == "__main__" or len(results) == 0:
+                print(f"[DEBUG] SQL: {sql[:200]}...")
+                print(f"[DEBUG] Results count: {len(results)}")
         except Exception as e:
             return {
                 "success": False,
@@ -97,7 +101,8 @@ class SemanticQueryExecutor:
         # Interpret results
         insights = self._interpret_results(intent, results)
         
-        return {
+        # For the query() method, return the first insight directly
+        result_dict = {
             "success": True,
             "query": natural_language_query,
             "intent": {
@@ -112,6 +117,12 @@ class SemanticQueryExecutor:
             "insights": [insight.to_dict() for insight in insights],
             "record_count": len(results),
         }
+        
+        # Return first insight if available, otherwise return the full result
+        if insights:
+            return insights[0].to_dict()
+        else:
+            return {"title": "No Results", "value": "No data available"}
     
     def _interpret_results(self, intent: QueryIntent, results: List[Dict]) -> List[HealthInsight]:
         """
@@ -134,11 +145,12 @@ class SemanticQueryExecutor:
             return [insight]
         
         # Handle aggregation results (count, average, etc.)
+        first_result = results[0]
+        
         if intent.metric == "count":
-            key = "RESULT_COUNT"
-            count = results[0].get(key, 0)
+            count = first_result.get("RESULT_COUNT", 0)
             
-            title = f"Total {intent.record_type.value.lower()} records"
+            title = f"Total {intent.record_type.value.lower() if intent.record_type else 'records'}"
             if intent.time_period:
                 title += f" ({intent.time_period})"
             
@@ -146,37 +158,64 @@ class SemanticQueryExecutor:
                 title=title,
                 value=count,
                 unit="records",
+                interpretation=f"Found {count} {intent.record_type.value.lower() if intent.record_type else 'record'} records matching your criteria",
                 record_count=1,
             )
             insights.append(insight)
         
         elif intent.metric == "average":
-            key = "RESULT_AVERAGE"
-            avg_value = results[0].get(key, 0) if results else 0
+            avg_value = first_result.get("RESULT_AVERAGE")
+            record_count = first_result.get("RECORD_COUNT", 0)
             
-            title = f"Average {intent.attribute or intent.record_type.value.lower()}"
+            # Handle None/NULL values from Snowflake
+            if avg_value is None or (isinstance(avg_value, str) and avg_value.upper() == 'NULL'):
+                avg_value = 0
+            
+            try:
+                avg_value = float(avg_value)
+            except (TypeError, ValueError):
+                avg_value = 0
+            
+            title = f"Average {intent.attribute or intent.record_type.value.lower() if intent.record_type else 'value'}"
             unit = self._guess_unit(intent.attribute)
+            
+            # Add interpretation
+            interpretation = f"Based on {record_count} records"
+            if unit == "mg/dL" and avg_value > 100:
+                interpretation += " - slightly elevated"
             
             insight = HealthInsight(
                 title=title,
-                value=round(avg_value, 2) if isinstance(avg_value, float) else avg_value,
+                value=round(avg_value, 2) if avg_value else 0,
                 unit=unit,
-                record_count=1,
+                interpretation=interpretation,
+                record_count=record_count,
             )
             insights.append(insight)
         
         elif intent.metric in ["maximum", "minimum"]:
-            key = f"RESULT_{intent.metric.upper()}"
-            value = results[0].get(key, 0) if results else 0
+            key_metric = f"RESULT_{intent.metric.upper()}"
+            value = first_result.get(key_metric)
+            record_count = first_result.get("RECORD_COUNT", 0)
             
-            title = f"{intent.metric.capitalize()} {intent.attribute or intent.record_type.value.lower()}"
+            # Handle None/NULL values
+            if value is None or (isinstance(value, str) and value.upper() == 'NULL'):
+                value = 0
+            
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                value = 0
+            
+            title = f"{intent.metric.capitalize()} {intent.attribute or intent.record_type.value.lower() if intent.record_type else 'value'}"
             unit = self._guess_unit(intent.attribute)
             
             insight = HealthInsight(
                 title=title,
-                value=round(value, 2) if isinstance(value, float) else value,
+                value=round(value, 2) if value else 0,
                 unit=unit,
-                record_count=1,
+                interpretation=f"Based on {record_count} records",
+                record_count=record_count,
             )
             insights.append(insight)
         
