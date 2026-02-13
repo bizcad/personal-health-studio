@@ -1,5 +1,5 @@
 """
-End-to-End Test: PDF Extraction → Snowflake Import → Query Verification
+End-to-End Test: PDF Extraction -> Snowflake Import -> Query Verification
 
 This test demonstrates the complete Phase 4 workflow:
 1. Create sample extracted health records (simulating PDF extraction)
@@ -13,12 +13,12 @@ import sys
 from datetime import datetime, timedelta, date
 from pathlib import Path
 
-# Add src to path
+# Add src to path for runtime imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from health_models import HealthRecord, RecordClass
-from snowflake_client import SnowflakeClient
-from semantic_query_executor import SemanticQueryExecutor
+from health_models import HealthRecord, RecordClass  # type: ignore
+from snowflake_client import SnowflakeClient  # type: ignore
+from semantic_query_executor import SemanticQueryExecutor  # type: ignore
 
 
 def create_sample_health_data(patient_identity: str = "demo@example.com"):
@@ -31,7 +31,7 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
     today = date.today()
     
     # 1. LAB RECORDS - Create 5 lab tests over 6 months
-    print("📋 Creating Lab Records...")
+    print("[LAB RECORDS] Creating Lab Records...")
     lab_tests = [
         {
             "date": today - timedelta(days=180),
@@ -86,10 +86,10 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
             source_document="health_export.pdf"
         )
         records.append(health_record)
-        print(f"  ✓ {lab['test_name']}: {lab['value']}")
+        print(f"  [OK] {lab['test_name']}: {lab['value']}")
     
     # 2. VITAL RECORDS - Create 30 vitals over 3 months
-    print("\n📊 Creating Vital Records...")
+    print("\n[VITAL RECORDS] Creating Vital Records...")
     vital_types = [
         {"name": "BP", "value": "140/90", "unit": "mmHg"},
         {"name": "HR", "value": "72", "unit": "bpm"},
@@ -115,12 +115,12 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
         records.append(health_record)
         
         if i < 3 or i % 10 == 0:
-            print(f"  ✓ {vital_type['name']}: {vital_type['value']} {vital_type['unit']}")
+            print(f"  [OK] {vital_type['name']}: {vital_type['value']} {vital_type['unit']}")
     
     print(f"  ... and 27 more vital records")
     
     # 3. MEDICATION RECORDS - Current medications
-    print("\n💊 Creating Medication Records...")
+    print("\n[MEDICATIONS] Creating Medication Records...")
     medications = [
         {
             "name": "Metformin",
@@ -172,10 +172,10 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
             extraction_confidence=0.99
         )
         records.append(health_record)
-        print(f"  ✓ {med['name']} {med['dosage']} - {med['status']}")
+        print(f"  [OK] {med['name']} {med['dosage']} - {med['status']}")
     
     # 4. CONDITION RECORDS - Chronic conditions
-    print("\n🏥 Creating Condition Records...")
+    print("\n[CONDITIONS] Creating Condition Records...")
     conditions = [
         {
             "name": "Type 2 Diabetes Mellitus",
@@ -214,10 +214,10 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
             extraction_confidence=0.92
         )
         records.append(health_record)
-        print(f"  ✓ {cond['name']} ({cond['status']})")
+        print(f"  [OK] {cond['name']} ({cond['status']})")
     
     # 5. ALLERGY RECORDS
-    print("\n🚨 Creating Allergy Records...")
+    print("\n[ALLERGIES] Creating Allergy Records...")
     allergies = [
         {
             "allergen": "Penicillin",
@@ -247,10 +247,10 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
             extraction_confidence=0.98
         )
         records.append(health_record)
-        print(f"  ✓ {allergy['allergen']}: {allergy['reaction']} ({allergy['severity']})")
+        print(f"  [OK] {allergy['allergen']}: {allergy['reaction']} ({allergy['severity']})")
     
     # 6. IMMUNIZATION RECORDS
-    print("\n💉 Creating Immunization Records...")
+    print("\n[IMMUNIZATIONS] Creating Immunization Records...")
     immunizations = [
         {
             "vaccine": "Influenza",
@@ -285,24 +285,24 @@ def create_sample_health_data(patient_identity: str = "demo@example.com"):
             extraction_confidence=0.96
         )
         records.append(health_record)
-        print(f"  ✓ {imm['vaccine']} - Dose {imm['dose_number']}")
+        print(f"  [OK] {imm['vaccine']} - Dose {imm['dose_number']}")
     
-    print(f"\n✅ Total {len(records)} health records created")
+    print(f"\n[SUCCESS] Total {len(records)} health records created")
     return records
 
 
 def test_extraction_workflow():
-    """Test complete E2E workflow: Extract → Import → Query"""
+    """Test complete E2E workflow: Extract -> Import -> Query"""
     
     print("\n" + "="*70)
-    print("PHASE 4: END-TO-END EXTRACTION → IMPORT → QUERY TEST")
+    print("PHASE 4: END-TO-END EXTRACTION -> IMPORT -> QUERY TEST")
     print("="*70)
     
     patient_identity = f"demo_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}@example.com"
     
     # ============ STEP 1: Extract Health Data ============
     print(f"\n[STEP 1] EXTRACT HEALTH DATA")
-    print("─" * 70)
+    print("-" * 70)
     print(f"Creating sample extraction for: {patient_identity}")
     
     records = create_sample_health_data(patient_identity)
@@ -319,7 +319,7 @@ def test_extraction_workflow():
     
     # ============ STEP 2: Import to Snowflake ============
     print(f"\n[STEP 2] IMPORT TO SNOWFLAKE")
-    print("─" * 70)
+    print("-" * 70)
     
     client = SnowflakeClient(
         account_id="kgqnwwa-zxb81952",
@@ -330,12 +330,12 @@ def test_extraction_workflow():
     
     try:
         client.connect()
-        print("✓ Connected to Snowflake")
+        print("[OK] Connected to Snowflake")
         
         # Import records
         import_result = client.import_health_records(patient_identity, records)
         
-        print(f"\n✓ Import Successful:")
+        print(f"\n[OK] Import Successful:")
         print(f"  - Records Inserted: {import_result['records_inserted']}")
         print(f"  - Records Failed: {import_result['records_failed']}")
         print(f"  - Record Types:")
@@ -344,7 +344,7 @@ def test_extraction_workflow():
         
         # ============ STEP 3: Verify Import ============
         print(f"\n[STEP 3] VERIFY IMPORT")
-        print("─" * 70)
+        print("-" * 70)
         
         # Query all records
         all_records = client.query_health_data(
@@ -353,7 +353,7 @@ def test_extraction_workflow():
             {"limit": 100}
         )
         
-        print(f"✓ Retrieved {len(all_records)} records from database")
+        print(f"[OK] Retrieved {len(all_records)} records from database")
         
         # Show sample records by type
         print(f"\nSample Records:")
@@ -367,7 +367,7 @@ def test_extraction_workflow():
         
         # ============ STEP 4: Query with Semantic Layer ============
         print(f"\n[STEP 4] SEMANTIC QUERIES")
-        print("─" * 70)
+        print("-" * 70)
         
         semantic_executor = SemanticQueryExecutor(snowflake_client=client)
         
@@ -399,27 +399,27 @@ def test_extraction_workflow():
                     unit = getattr(result, 'unit', '')
                     interpretation = getattr(result, 'interpretation', '')
                 
-                print(f"   → {title}: {value} {unit}".strip())
+                print(f"   -> {title}: {value} {unit}".strip())
                 if interpretation:
-                    print(f"   → Insight: {interpretation[:100]}...")
+                    print(f"   -> Insight: {interpretation[:100]}...")
                 print()
             except Exception as e:
-                print(f"   ✗ Error: {str(e)[:100]}")
+                print(f"   [X] Error: {str(e)[:100]}")
                 print()
         
         # ============ FINAL SUMMARY ============
         print(f"[SUMMARY] END-TO-END WORKFLOW COMPLETE")
-        print("─" * 70)
-        print(f"✅ Extraction:  {len(records)} records created")
-        print(f"✅ Import:      {import_result['records_inserted']} records stored")
-        print(f"✅ Verification: {len(all_records)} records retrieved")
-        print(f"✅ Semantic:    {len(test_queries)} queries executed")
-        print(f"\n✅ ALL TESTS PASSED - Phase 4 ready for demo!")
+        print("-" * 70)
+        print(f"[SUCCESS] Extraction:  {len(records)} records created")
+        print(f"[SUCCESS] Import:      {import_result['records_inserted']} records stored")
+        print(f"[SUCCESS] Verification: {len(all_records)} records retrieved")
+        print(f"[SUCCESS] Semantic:    {len(test_queries)} queries executed")
+        print(f"\n[SUCCESS] ALL TESTS PASSED - Phase 4 ready for demo!")
         
         return True
         
     except Exception as e:
-        print(f"\n❌ Error during test: {str(e)}")
+        print(f"\n[ERROR] Error during test: {str(e)}")
         import traceback
         traceback.print_exc()
         return False
