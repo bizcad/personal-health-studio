@@ -25,6 +25,7 @@ from health_models import (
     MedicationRecord,
 )
 from snowflake_client import SnowflakeClient
+from semantic_query_executor import SemanticQueryExecutor
 
 
 # Initialize MCP Server
@@ -201,6 +202,91 @@ async def handle_query_health_data(name: str, arguments: dict) -> list[types.Tex
 
 
 # ============================================================================
+# TOOL 3: SEMANTIC QUERY (Natural Language to Insights)
+# ============================================================================
+
+@server.call_tool()
+async def handle_semantic_query(name: str, arguments: dict) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+    """
+    Query health data using natural language
+    
+    This tool converts natural language questions into SQL queries
+    and returns human-readable insights.
+    """
+    if name != "semantic_query":
+        raise ValueError(f"Unknown tool: {name}")
+    
+    try:
+        # Parse request
+        patient_identity = arguments.get("patient_identity")
+        natural_language_query = arguments.get("query")
+        
+        if not patient_identity:
+            return [types.TextContent(
+                type="text",
+                text="ERROR: patient_identity is required"
+            )]
+        
+        if not natural_language_query:
+            return [types.TextContent(
+                type="text",
+                text="ERROR: query is required"
+            )]
+        
+        # Get Snowflake client and executor
+        client = get_snowflake_client()
+        executor = SemanticQueryExecutor(client)
+        
+        # Execute semantic query
+        result = executor.query(patient_identity, natural_language_query)
+        
+        if not result.get("success"):
+            error_msg = result.get("error", "Unknown error")
+            return [types.TextContent(
+                type="text",
+                text=f"Query failed: {error_msg}"
+            )]
+        
+        # Format response
+        response = f"""
+💡 Natural Language Query
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Question: {result['query']}
+
+📊 Insights ({result.get('record_count', 0)} records):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+        
+        for insight in result.get('insights', [])[:5]:
+            insight_data = insight
+            if isinstance(insight, dict):
+                title = insight.get('title', 'Result')
+                value = insight.get('value', '')
+                unit = insight.get('unit', '')
+                
+                if unit:
+                    response += f"\n✓ {title}: {value} {unit}"
+                else:
+                    response += f"\n✓ {title}: {value}"
+        
+        response += f"""
+
+🔍 Query Details
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Intent: {result.get('intent', {})}
+Generated SQL: {result.get('sql', '')[:200]}...
+"""
+        
+        return [types.TextContent(type="text", text=response)]
+        
+    except Exception as e:
+        error_msg = f"ERROR in semantic_query: {str(e)}"
+        print(error_msg, file=sys.stderr)
+        return [types.TextContent(type="text", text=error_msg)]
+
+
+# ============================================================================
 # TOOL DEFINITIONS
 # ============================================================================
 
@@ -285,6 +371,24 @@ async def handle_list_tools() -> list[Tool]:
                     },
                 },
                 "required": ["patient_identity", "query_type"],
+            },
+        ),
+        Tool(
+            name="semantic_query",
+            description="Query health data using natural language questions",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "patient_identity": {
+                        "type": "string",
+                        "description": "Patient name or identifier",
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "Natural language question (e.g., 'What was my average blood glucose last year?')",
+                    },
+                },
+                "required": ["patient_identity", "query"],
             },
         ),
     ]

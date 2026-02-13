@@ -1,0 +1,246 @@
+---
+# Health Intelligence Semantic Model
+# Cortex Analyst configuration for natural language queries
+# Maps domain concepts to database tables and columns
+
+name: health_intelligence
+main_table: health_records
+
+tables:
+  # ========================================
+  # Dimension: Patients
+  # ========================================
+  patients:
+    description: "Master patient dimensions"
+    physical_name: HEALTH_INTELLIGENCE.HEALTH_RECORDS.PATIENTS
+    columns:
+      patient_id:
+        description: "Unique patient identifier"
+        physical_name: PATIENT_ID
+        data_type: NUMBER
+        is_primary_key: true
+      
+      patient_identity:
+        description: "Patient name or identifier"
+        physical_name: PATIENT_IDENTITY
+        data_type: TEXT
+
+      date_of_birth:
+        description: "Patient date of birth"
+        physical_name: DATE_OF_BIRTH
+        data_type: DATE
+
+      gender:
+        description: "Patient biological sex"
+        physical_name: GENDER
+        data_type: TEXT
+        properties:
+          valid_values: ["Male", "Female", "Other", "Unknown"]
+
+      contact_email:
+        description: "Patient email address"
+        physical_name: CONTACT_EMAIL
+        data_type: TEXT
+
+      contact_phone:
+        description: "Patient phone number"
+        physical_name: CONTACT_PHONE
+        data_type: TEXT
+
+  # ========================================
+  # Fact: Health Records
+  # ========================================
+  health_records:
+    description: "All health records - unified fact table"
+    physical_name: HEALTH_INTELLIGENCE.HEALTH_RECORDS.HEALTH_RECORDS
+    columns:
+      record_id:
+        description: "Unique health record identifier"
+        physical_name: RECORD_ID
+        data_type: NUMBER
+        is_primary_key: true
+
+      patient_id:
+        description: "Reference to patient"
+        physical_name: PATIENT_ID
+        data_type: NUMBER
+        is_foreign_key: true
+        joins_to: patients.patient_id
+
+      import_id:
+        description: "Reference to import batch"
+        physical_name: IMPORT_ID
+        data_type: NUMBER
+
+      record_class:
+        description: "Type of health record"
+        physical_name: RECORD_CLASS
+        data_type: TEXT
+        properties:
+          valid_values: ["LAB", "VITAL", "MEDICATION", "CONDITION", "ALLERGY", "IMMUNIZATION", "ENCOUNTER", "NOTE"]
+          synonyms:
+            - lab test: LAB
+            - laboratory: LAB
+            - lab results: LAB
+            - vital signs: VITAL
+            - vital: VITAL
+            - blood pressure: VITAL
+            - heart rate: VITAL
+            - temperature: VITAL
+            - med: MEDICATION
+            - drug: MEDICATION
+            - prescription: MEDICATION
+            - diagnosis: CONDITION
+            - problem: CONDITION
+            - condition: CONDITION
+            - allergies: ALLERGY
+            - sensitivity: ALLERGY
+            - vaccine: IMMUNIZATION
+            - shot: IMMUNIZATION
+            - immunization: IMMUNIZATION
+            - visit: ENCOUNTER
+            - appointment: ENCOUNTER
+            - note: NOTE
+            - clinical note: NOTE
+
+      record_date:
+        description: "When the record was recorded"
+        physical_name: RECORD_DATE
+        data_type: DATE
+        properties:
+          is_timestamp: true
+
+      provider_identity:
+        description: "Healthcare provider name"
+        physical_name: PROVIDER_IDENTITY
+        data_type: TEXT
+
+      data_json:
+        description: "Structured record data as JSON"
+        physical_name: DATA_JSON
+        data_type: TEXT
+        properties:
+          is_json: true
+
+      extraction_confidence:
+        description: "Confidence score of data extraction (0-1)"
+        physical_name: EXTRACTION_CONFIDENCE
+        data_type: FLOAT
+        properties:
+          min_value: 0
+          max_value: 1
+
+      verification_status:
+        description: "Whether record has been verified"
+        physical_name: VERIFICATION_STATUS
+        data_type: TEXT
+        properties:
+          valid_values: ["verified", "unverified", "pending_review"]
+
+# ========================================
+# Metrics (derived calculations)
+# ========================================
+metrics:
+  avg_lab_glucose:
+    description: "Average fasting glucose level"
+    select: "AVG(CAST((data_json:result_value::STRING) AS FLOAT))"
+    from: health_records
+    where: "record_class = 'LAB' AND data_json LIKE '%Glucose%'"
+    data_type: FLOAT
+
+  avg_blood_pressure_systolic:
+    description: "Average systolic blood pressure"
+    select: "AVG(CAST(SPLIT_PART(data_json:value::STRING, '/', 1) AS FLOAT))"
+    from: health_records
+    where: "record_class = 'VITAL' AND data_json LIKE '%BP%'"
+    data_type: FLOAT
+
+  count_active_medications:
+    description: "Number of currently active medications"
+    select: "COUNT(*)"
+    from: health_records
+    where: "record_class = 'MEDICATION' AND data_json LIKE '%active%'"
+    data_type: NUMBER
+
+  abnormal_labs_count:
+    description: "Number of abnormal lab results"
+    select: "COUNT(*)"
+    from: health_records
+    where: "record_class = 'LAB' AND data_json LIKE '%abnormal%'"
+    data_type: NUMBER
+
+# ========================================
+# Hierarchies (rollups for grouping)
+# ========================================
+hierarchies:
+  record_type_hierarchy:
+    description: "Grouping for different record types"
+    levels:
+      - record_class
+      - provider_identity
+
+  time_hierarchy:
+    description: "Time-based groupings"
+    levels:
+      - record_date (day)
+      - YEAR(record_date) (year)
+      - MONTH(record_date) (month)
+
+# ========================================
+# Filters (pre-defined query constraints)
+# ========================================
+filters:
+  recent_records:
+    description: "Records from the last 365 days"
+    condition: "record_date >= DATEADD(day, -365, CURRENT_DATE())"
+
+  abnormal_findings:
+    description: "All abnormal lab findings"
+    condition: "record_class = 'LAB' AND data_json LIKE '%abnormal%'"
+
+  active_medications:
+    description: "Currently active medications"
+    condition: "record_class = 'MEDICATION' AND (data_json LIKE '%active%' OR verification_status = 'verified')"
+
+  recent_visits:
+    description: "Recent encounters/visits"
+    condition: "record_class = 'ENCOUNTER' AND record_date >= DATEADD(day, -90, CURRENT_DATE())"
+
+# ========================================
+# Sample Questions (for agent training)
+# ========================================
+sample_questions:
+  - "What was my average blood glucose last year?"
+    answer: >
+      SELECT AVG(CAST((data_json:result_value::STRING) AS FLOAT)) as avg_glucose
+      FROM health_records WHERE record_class = 'LAB' 
+      AND data_json LIKE '%Glucose%'
+      AND record_date >= DATEADD(year, -1, CURRENT_DATE())
+
+  - "How many active medications do I have?"
+    answer: >
+      SELECT COUNT(*) as medication_count
+      FROM health_records WHERE record_class = 'MEDICATION'
+      AND data_json LIKE '%active%'
+
+  - "What were my blood pressure readings last month?"
+    answer: >
+      SELECT record_date, data_json:value as reading, provider_identity
+      FROM health_records WHERE record_class = 'VITAL'
+      AND data_json LIKE '%BP%' OR data_json LIKE '%blood%'
+      AND record_date >= DATEADD(month, -1, CURRENT_DATE())
+      ORDER BY record_date DESC
+
+  - "Show me all abnormal lab results"
+    answer: >
+      SELECT record_date, data_json, provider_identity
+      FROM health_records WHERE record_class = 'LAB'
+      AND data_json LIKE '%abnormal%'
+      ORDER BY record_date DESC
+
+  - "What conditions have I been diagnosed with?"
+    answer: >
+      SELECT DISTINCT data_json:condition_name as condition, 
+             data_json:status as status
+      FROM health_records WHERE record_class = 'CONDITION'
+      ORDER BY condition_name
