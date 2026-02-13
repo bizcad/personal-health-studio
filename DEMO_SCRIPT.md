@@ -1,81 +1,81 @@
 # Personal Health Studio - Demo Script
 
 ## Pre-Demo Setup
-1. **Open the sample health report** - This is the "source document"
-   ```
-   Open: sample_health_report.html (double-click to open in browser)
-   ```
-2. **Open a terminal** in the `health-mcp` folder
-3. **Have VS Code ready** to show the code structure
+1. **Prepare the PDF** - The source document
+   - You have: `personal_health_report.pdf` (Chrome print-to-PDF version)
+   - Open it before the demo to verify it looks good
+   - Have Acrobat ready so you can click "View Summary"
+
+2. **Open a terminal** in the `tools/health-mcp` folder
+
+3. **Optional: Have VS Code ready** to show code structure if asked
 
 ---
 
 ## Demo Flow (Estimated: 10-12 minutes)
 
-### Part 1: Show the Problem (1-2 minutes)
+### Part 1: Show the Problem & Solution Path (2 minutes)
 **What to say:**
-"So we have a patient's health data exported as an HTML report from their health provider. This contains:
-- Labs: Blood glucose, cholesterol, A1C
-- Medications: 4 active medications
-- Conditions: Type 2 Diabetes, Hypertension, High Cholesterol
-- Allergies: Penicillin and Shellfish (severe)
-- Vital signs: Blood pressure, heart rate, weight, temperature
+"I have a patient's health data that was exported as a PDF from their health provider. Let me show you..."
 
-**The problem:** This is just a static document. How do we actually extract, organize, and query this data intelligently?"
+**ACTION:** Open `personal_health_report.pdf` in Acrobat
+- Point out the health report sections: Labs, Medications, Conditions, Allergies
+- Say: "Acrobat can summarize this for us..."
+- Click "View Summary" in Acrobat
+- Read the summary aloud (shows AI extracted the key points)
 
-### Part 2: The System Overview (2-3 minutes)
+**Then say:**
+"But here's the thing - Acrobat can give me ONE summary. What if I want to ASK QUESTIONS about the data? What if I want to compare, drill down, or find correlations?
+
+That's where this system comes in. Instead of just summarizing the PDF, we EXTRACT the data, ORGANIZE it, and let you QUERY it however you want."
+
+### Part 2: The System Architecture (1-2 minutes)
 **What to say:**
-"This is a multi-phase health intelligence system. Let me show you what happens:
+"This system has 4 phases:
 
-1. **Phase 1 - Data Storage:** We set up Snowflake (cloud data warehouse) with a schema specifically for health records
-2. **Phase 2 - Data Connectors:** We created tools to import health data from various sources
-3. **Phase 3 - Semantic Layer:** We built a natural language to SQL mapper - so you can ask questions in plain English
-4. **Phase 4 - Full Integration:** We wire it all together end-to-end
+1. **Data Models** - We defined Pydantic models for different health record types
+2. **Data Storage** - Snowflake cloud warehouse stores the structured data
+3. **Semantic Layer** - Natural language gets converted to SQL queries automatically
+4. **Intelligent Analysis** - Results come back as human-readable insights
 
-The cool part? We're using Pydantic models, JSON structured data, and Snowflake's semantic analysis."
+The magic is in the semantic layer - it understands medical terminology and can answer ANY question."
 
-**Show briefly:**
-- Open `src/health_models.py` - "These are our data models for different record types"
-- Open `src/nl_mapper.py` - "This converts natural language to SQL queries"
+**Optional - Show briefly if they're interested:**
+- Open `src/nl_mapper.py` - "This converts natural language to SQL"
+- Point out the synonyms: "BP=Blood Pressure", "glucose keywords", "medication patterns"
 
-### Part 3: Run the Live Demo (5-7 minutes)
+### Part 3: Run the Live Demo (4-5 minutes)
 
 **What to say:**
-"Now let's see it in action. This is a complete end-to-end test that will:
-1. Extract all the health data from the report
-2. Import it into Snowflake
-3. Query it with natural language questions
-4. Show you the insights"
+"Let me show you what happens when we extract and query this data. I'll run a complete end-to-end test that:
+1. Extracts the data from the document
+2. Stores it in Snowflake
+3. Asks natural language questions
+4. Shows you the results
+
+Remember Acrobat's summary? This does the same thing, but then lets you QUERY the data."
 
 **Execute:**
-```powershell
+```bash
+cd tools\health-mcp
 py test_extraction_e2e.py
 ```
 
 **As it runs, narrate:**
-- "STEP 1: Extracting 47 health records from the report..."
-- "STEP 2: Connected to Snowflake and importing all records..."
-- "STEP 3: Verifying the data is there with a database query..."
-- "STEP 4: Now the magic - natural language queries..."
+- "STEP 1: Extracting 47 health records from the document..."
+- "STEP 2: Importing to Snowflake..."
+- "STEP 3: Verifying records stored..."
+- "STEP 4: Now querying with natural language..."
 
-**Watch for the results:**
-```
-1. Query: What is my average blood glucose?
-   -> Average value: 106.5 mg/dL
-      Insight: Based on 2 records - slightly elevated
+**When results appear, narrate:**
+"Notice – These questions in plain English return CALCULATED results:
+- Average blood glucose: **106.5 mg/dL** (from real data)
+- Medications: All 4 with their dosages and frequencies
+- Active conditions: **3 detected**
+- Allergies: Shows severity levels
+- Vital signs: Tracked over time
 
-2. Query: What medications am I taking?
-   -> (Shows all 4 medications with dosages)
-
-3. Query: How many active conditions do I have?
-   -> Total condition: 3 records
-
-4. Query: What are my known allergies?
-   -> (Shows Penicillin and Shellfish with severity levels)
-
-5. Query: Show me my recent vital signs
-   -> (Shows vital data with timestamps)
-```
+Acrobat summarized the PDF once. This lets you ask ANY question about the data, as many times as you want."
 
 ### Part 4: The Architecture (2-3 minutes)
 
